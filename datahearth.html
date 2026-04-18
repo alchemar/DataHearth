@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataHearth — Project Summary & Deployment Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0c10;
+    --surf:     #111520;
+    --surf2:    #171c2a;
+    --border:   #1e2638;
+    --accent:   #f0a500;
+    --accent2:  #ff6b35;
+    --blue:     #4db8ff;
+    --green:    #3ec97a;
+    --red:      #ff4757;
+    --purple:   #a855f7;
+    --text:     #d4dce8;
+    --muted:    #4a5568;
+    --dim:      #2a3347;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    padding: 5rem 0 4rem;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -10%;
+    width: 120%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 40%, rgba(240,165,0,.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 60%, rgba(77,184,255,.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 3rem;
+    position: relative;
+    z-index: 1;
+  }
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    letter-spacing: .04em;
+    line-height: .9;
+    color: #fff;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: var(--text);
+    max-width: 640px;
+    opacity: .85;
+    line-height: 1.8;
+  }
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: 2rem;
+  }
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .05em;
+    padding: .3rem .75rem;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .badge-amber  { border-color: var(--accent);  color: var(--accent);  background: rgba(240,165,0,.06); }
+  .badge-blue   { border-color: var(--blue);    color: var(--blue);    background: rgba(77,184,255,.06); }
+  .badge-green  { border-color: var(--green);   color: var(--green);   background: rgba(62,201,122,.06); }
+  .badge-purple { border-color: var(--purple);  color: var(--purple);  background: rgba(168,85,247,.06); }
+  .badge-orange { border-color: var(--accent2); color: var(--accent2); background: rgba(255,107,53,.06); }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 3rem; }
+
+  /* ── Section titles ── */
+  .section {
+    padding: 3.5rem 0 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .section-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    line-height: 1;
+    color: var(--dim);
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: .06em;
+    color: #fff;
+  }
+  .section-title span { color: var(--accent); }
+
+  /* ── Hardware table ── */
+  .hw-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .hw-cell {
+    background: var(--surf);
+    padding: 1.2rem 1.5rem;
+  }
+  .hw-cell.full  { grid-column: 1 / -1; background: var(--surf2); }
+  .hw-cell.header { background: var(--surf2); }
+  .hw-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .3rem;
+  }
+  .hw-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .hw-value strong { color: var(--accent); }
+
+  /* ── VM allocation table ── */
+  .vm-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .vm-table th {
+    background: var(--surf2);
+    padding: .75rem 1.2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .vm-table td {
+    padding: .85rem 1.2rem;
+    border-bottom: 1px solid var(--dim);
+    font-size: .9rem;
+    vertical-align: top;
+  }
+  .vm-table tr:last-child td { border-bottom: none; }
+  .vm-table tr:nth-child(even) td { background: rgba(255,255,255,.018); }
+  .vm-name {
+    font-family: 'DM Mono', monospace;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .vm-ip {
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem;
+    color: var(--blue);
+    display: block;
+    margin-top: .2rem;
+  }
+  .vm-num {
+    font-family: 'DM Mono', monospace;
+    font-size: .85rem;
+    color: var(--text);
+  }
+  .vm-passthrough {
+    font-size: .75rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .vm-services { font-size: .82rem; color: var(--text); line-height: 1.6; }
+
+  /* ── VM cards ── */
+  .vm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+  .vm-card {
+    background: var(--surf);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .vm-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .vm-card.sentinel::before  { background: var(--blue); }
+  .vm-card.lexicon::before   { background: var(--accent); }
+  .vm-card.deepthought::before { background: var(--purple); }
+  .vm-card.echo::before      { background: var(--green); }
+  .vm-card.canvas::before    { background: var(--accent2); }
+  .vm-card.citadel::before   { background: var(--red); }
+
+  .vm-card-header { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+  .vm-card-icon { font-size: 1.6rem; }
+  .vm-card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: .06em;
+    color: #fff;
+    line-height: 1;
+  }
+  .vm-card-ip {
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    color: var(--muted);
+    margin-top: .1rem;
+  }
+  .vm-spec-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: .5rem;
+  }
+  .vm-spec {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+  }
+  .vm-spec strong { color: var(--text); }
+  .vm-svc-list {
+    list-style: none;
+    margin-top: .75rem;
+    border-top: 1px solid var(--dim);
+    padding-top: .75rem;
+  }
+  .vm-svc-list li {
+    font-size: .8rem;
+    color: var(--muted);
+    padding: .2rem 0;
+    display: flex;
+    gap: .5rem;
+    align-items: baseline;
+  }
+  .vm-svc-list li::before { content: '›'; color: var(--accent); font-size: .9rem; }
+  .pt-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem;
+    padding: .15rem .5rem;
+    border-radius: 3px;
+    margin-top: .6rem;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+  }
+
+  /* ── Deploy steps ── */
+  .step-list { display: flex; flex-direction: column; gap: 2rem; }
+  .step {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    color: var(--accent);
+    line-height: 1;
+    padding-top: .1rem;
+    flex-shrink: 0;
+  }
+  .step-body {
+    min-width: 0;  /* critical: prevents grid blowout */
+  }
+  .step-body h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .5rem;
+  }
+  .step-body p { font-size: .88rem; color: var(--text); margin-bottom: .75rem; }
+
+  /* ── Code blocks ── */
+  pre, code {
+    font-family: 'DM Mono', monospace;
+    font-size: .78rem;
+  }
+  pre {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #a8c4d4;
+    line-height: 1.7;
+    margin-bottom: .75rem;
+  }
+  code {
+    background: rgba(240,165,0,.12);
+    color: var(--accent);
+    padding: .1em .4em;
+    border-radius: 3px;
+    font-size: .82em;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .comment { color: #4a5568; }
+  .kw  { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .cmd { color: var(--green); }
+
+  /* ── Info / warn boxes ── */
+  .callout {
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: .85rem;
+    line-height: 1.6;
+    border-left: 3px solid;
+  }
+  .callout-warn  { background: rgba(240,165,0,.07); border-color: var(--accent); color: #c8a84b; }
+  .callout-info  { background: rgba(77,184,255,.07); border-color: var(--blue);   color: #7ab8d4; }
+  .callout-green { background: rgba(62,201,122,.07); border-color: var(--green);  color: #59b87a; }
+
+  /* ── Script reference table ── */
+  .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .ref-table th {
+    background: var(--surf2);
+    padding: .7rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .63rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .ref-table td {
+    padding: .8rem 1rem;
+    border-bottom: 1px solid var(--dim);
+    font-size: .83rem;
+    vertical-align: top;
+  }
+  .ref-table tr:last-child td { border-bottom: none; }
+  .ref-table tr:nth-child(even) td { background: rgba(255,255,255,.015); }
+  .ref-script { font-family: 'DM Mono', monospace; color: var(--accent); font-size: .8rem; }
+  .ref-output  { font-family: 'DM Mono', monospace; color: var(--blue);   font-size: .75rem; }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 1rem 0;
+  }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 5rem;
+    padding: 2rem 3rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    color: var(--muted);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--accent); letter-spacing: .1em; }
+
+  /* ── Print ── */
+  @media print {
+    body { background: white; color: #1a1a1a; }
+    .hero::after, body::before { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Project Documentation · Rev 1.0</div>
+    <h1>Data<span>Hearth</span></h1>
+    <p class="hero-sub">
+      A self-hosted homelab running on a dual-Xeon X99 Proxmox server — media serving, AI inference,
+      image generation, home automation, and network management, all under one roof.
+    </p>
+    <div class="hero-badges">
+      <span class="badge badge-amber">Proxmox 9</span>
+      <span class="badge badge-blue">Debian 13 Trixie</span>
+      <span class="badge badge-green">Docker Compose</span>
+      <span class="badge badge-purple">6× PCIe x16</span>
+      <span class="badge badge-orange">3× Tesla P40</span>
+      <span class="badge badge-amber">56 vCPU · 94 GB RAM</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ 01 PROJECT OVERVIEW -->
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Project <span>Overview</span></h2>
+    </div>
+
+    <p style="max-width:780px; margin-bottom:2rem; font-size:.95rem; line-height:1.9; color:var(--text); opacity:.9;">
+      DataHearth is a fully self-hosted home infrastructure built on a single Proxmox hypervisor.
+      It replaces cloud services across media, AI, home automation, networking, and development
+      — keeping all data and compute on-premises. Six virtual machines divide the workload cleanly
+      by function, each with dedicated CPU and RAM allocations and PCIe passthrough where required.
+    </p>
+
+    <!-- Host hardware -->
+    <div class="hw-grid">
+      <div class="hw-cell full header">
+        <div class="hw-label">Proxmox Host — Dual Xeon X99</div>
+      </div>
+      <div class="hw-cell">
+        <div class="hw-label">CPU</div>
+        <div class="hw-value"><strong>56</strong> total cores &nbsp;·&nbsp; Dual Xeon (X99 platform)</div>
+      </div>
+      <div class="hw-cell">
+        <div class="hw-label">RAM</div>
+        <div class="hw-value"><strong>94 GB</strong> total &nbsp;·&nbsp; ECC DDR4</div>
+      </div>
+      <div class="hw-cell">
+        <div class="hw-label">GPU Slots</div>
+        <div class="hw-value"><strong>6×</strong> PCIe x16 slots</div>
+      </div>
+      <div class="hw-cell">
+        <div class="hw-label">Passed-through GPUs</div>
+        <div class="hw-value"><strong>3×</strong> Tesla P40 (24 GB VRAM each = 72 GB total)</div>
+      </div>
+      <div class="hw-cell">
+        <div class="hw-label">Management GPU</div>
+        <div class="hw-value">GT720 — Proxmox BIOS / host console only</div>
+      </div>
+      <div class="hw-cell">
+        <div class="hw-label">Proxmox RAM Overhead</div>
+        <div class="hw-value"><strong>6 GB</strong> reserved for hypervisor</div>
+      </div>
+    </div>
+
+    <!-- VM allocation table -->
+    <table class="vm-table">
+      <thead>
+        <tr>
+          <th>VM Name</th>
+          <th>IP</th>
+          <th>vCPU</th>
+          <th>RAM</th>
+          <th>Passthrough</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="vm-name">Proxmox Host</span></td>
+          <td><span class="vm-num">—</span></td>
+          <td><span class="vm-num">4</span></td>
+          <td><span class="vm-num">6 GB</span></td>
+          <td><span class="vm-passthrough">GT720 (display)</span></td>
+          <td><span class="vm-services">Hypervisor overhead</span></td>
+        </tr>
+        <tr>
+          <td><span class="vm-name">Sentinel</span><span class="vm-ip">10.50.0.10</span></td>
+          <td><span class="vm-num">10.50.0.10</span></td>
+          <td><span class="vm-num">4</span></td>
+          <td><span class="vm-num">8 GB</span></td>
+          <td><span class="vm-passthrough">HBA card (LTO tape)</span></td>
+          <td><span class="vm-services">Master dashboard, Omada SDN, OpenVPN / Tailscale, BorgBackup</span></td>
+        </tr>
+        <tr>
+          <td><span class="vm-name">Citadel</span><span class="vm-ip">10.50.0.11</span></td>
+          <td><span class="vm-num">10.50.0.11</span></td>
+          <td><span class="vm-num">4</span></td>
+          <td><span class="vm-num">4 GB</span></td>
+          <td><span class="vm-passthrough">Zigbee USB controller</span></td>
+          <td><span class="vm-services">Home Assistant OS — smart home hub</span></td>
+        </tr>
+        <tr>
+          <td><span class="vm-name">Lexicon</span><span class="vm-ip">10.50.0.13</span></td>
+          <td><span class="vm-num">10.50.0.13</span></td>
+          <td><span class="vm-num">16</span></td>
+          <td><span class="vm-num">28 GB</span></td>
+          <td><span class="vm-passthrough">None</span></td>
+          <td><span class="vm-services">Jellyfin, Kavita, Navidrome, PhotoPrism, Nextcloud, Audiobookshelf, Headway Maps, RomM, eXoDOS, Gitea, Kiwix + more</span></td>
+        </tr>
+        <tr>
+          <td><span class="vm-name">Canvas</span><span class="vm-ip">10.50.0.15</span></td>
+          <td><span class="vm-num">10.50.0.15</span></td>
+          <td><span class="vm-num">16</span></td>
+          <td><span class="vm-num">28 GB</span></td>
+          <td><span class="vm-passthrough">VT100 / ComfyUI GPU</span></td>
+          <td><span class="vm-services">ComfyUI — Stable Diffusion image generation</span></td>
+        </tr>
+        <tr>
+          <td><span class="vm-name">Deepthought</span><span class="vm-ip">10.50.0.14</span></td>
+          <td><span class="vm-num">10.50.0.14</span></td>
+          <td><span class="vm-num">8</span></td>
+          <td><span class="vm-num">16 GB</span></td>
+          <td><span class="vm-passthrough">2× Tesla P40 (48 GB VRAM)</span></td>
+          <td><span class="vm-services">Ollama (large models) + OpenWebUI</span></td>
+        </tr>
+        <tr>
+          <td><span class="vm-name">Echo</span><span class="vm-ip">10.50.0.20</span></td>
+          <td><span class="vm-num">10.50.0.20</span></td>
+          <td><span class="vm-num">4</span></td>
+          <td><span class="vm-num">4 GB</span></td>
+          <td><span class="vm-passthrough">1× Tesla P40 (24 GB VRAM)</span></td>
+          <td><span class="vm-services">faster-whisper large-v3 INT8 (~3.1 GB), Qwen3 30B-A3B Q4_K_M (~17 GB) — leaves ~2 GB buffer</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ 02 VM PROFILES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">VM <span>Profiles</span></h2>
+    </div>
+
+    <div class="vm-cards">
+
+      <!-- Sentinel -->
+      <div class="vm-card sentinel">
+        <div class="vm-card-header">
+          <span class="vm-card-icon">🛡️</span>
+          <div>
+            <div class="vm-card-name">Sentinel</div>
+            <div class="vm-card-ip">10.50.0.10 · 4 vCPU · 8 GB RAM</div>
+          </div>
+        </div>
+        <ul class="vm-svc-list">
+          <li>DataHearth master homepage (nginx, port 80)</li>
+          <li>Omada SDN Controller — TP-Link network management</li>
+          <li>OpenVPN client (host apt install)</li>
+          <li>Tailscale subnet router <em style="color:var(--accent);font-size:.72rem">(pending)</em></li>
+          <li>BorgBackup (host apt install)</li>
+        </ul>
+        <div class="pt-tag">🖴 HBA card → LTO tape backup</div>
+        <div class="callout callout-info" style="margin-top:1rem; font-size:.75rem;">
+          The homepage reads <code>servers.json</code> at load time — edit it on the host and just refresh the browser to update links. No container restart needed.
+        </div>
+      </div>
+
+      <!-- Lexicon -->
+      <div class="vm-card lexicon">
+        <div class="vm-card-header">
+          <span class="vm-card-icon">📚</span>
+          <div>
+            <div class="vm-card-name">Lexicon</div>
+            <div class="vm-card-ip">10.50.0.13 · 16 vCPU · 28 GB RAM</div>
+          </div>
+        </div>
+        <ul class="vm-svc-list">
+          <li>Jellyfin — video media server</li>
+          <li>Kavita — manga / comics / books</li>
+          <li>Navidrome — music streaming</li>
+          <li>PhotoPrism — AI photo management</li>
+          <li>Nextcloud — file sync &amp; sharing</li>
+          <li>Audiobookshelf — audiobooks &amp; podcasts</li>
+          <li>Headway — self-hosted OSM maps (~6 GB RAM)</li>
+          <li>RomM — ROM manager + EmulatorJS</li>
+          <li>eXoDOS — DOS game browser library</li>
+          <li>Gitea, Kiwix, Manyfold, TVHeadend, Music Assistant, Snapcast, Mopidy</li>
+        </ul>
+        <div class="callout callout-warn" style="margin-top:1rem; font-size:.75rem;">
+          RAM-heavy stack (~17–21 GB with all services on). Headway alone requires ~6 GB; Solr/Tika ~3 GB. Disable unused services to reclaim headroom.
+        </div>
+      </div>
+
+      <!-- Deepthought -->
+      <div class="vm-card deepthought">
+        <div class="vm-card-header">
+          <span class="vm-card-icon">🤖</span>
+          <div>
+            <div class="vm-card-name">Deepthought</div>
+            <div class="vm-card-ip">10.50.0.14 · 8 vCPU · 16 GB RAM</div>
+          </div>
+        </div>
+        <ul class="vm-svc-list">
+          <li>Ollama — LLM inference (port 11434)</li>
+          <li>OpenWebUI — chat interface (port 8080)</li>
+          <li>Models stored at <code>/mnt/disk0/Deepthought/models</code></li>
+        </ul>
+        <div class="pt-tag">🖥 2× Tesla P40 → 48 GB total VRAM</div>
+        <div class="callout callout-info" style="margin-top:1rem; font-size:.75rem;">
+          OLLAMA_SCHED_SPREAD=1 distributes model layers evenly across both P40s. KV cache q8_0 halves VRAM for long contexts. Fits deepseek-r1:70b Q4_K_M (~42 GB).
+        </div>
+      </div>
+
+      <!-- Echo -->
+      <div class="vm-card echo">
+        <div class="vm-card-header">
+          <span class="vm-card-icon">🎙️</span>
+          <div>
+            <div class="vm-card-name">Echo</div>
+            <div class="vm-card-ip">10.50.0.20 · 4 vCPU · 4 GB RAM</div>
+          </div>
+        </div>
+        <ul class="vm-svc-list">
+          <li>Ollama — Qwen3 30B-A3B Q4_K_M (~17 GB VRAM)</li>
+          <li>faster-whisper — large-v3 INT8 (~3.1 GB VRAM)</li>
+          <li>~2 GB VRAM buffer remaining</li>
+        </ul>
+        <div class="pt-tag">🖥 1× Tesla P40 → 24 GB VRAM</div>
+        <div class="callout callout-green" style="margin-top:1rem; font-size:.75rem;">
+          Dream configuration: a capable small reasoning model + always-on STT on a single 24 GB card with headroom to spare.
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="vm-card canvas">
+        <div class="vm-card-header">
+          <span class="vm-card-icon">🎨</span>
+          <div>
+            <div class="vm-card-name">Canvas</div>
+            <div class="vm-card-ip">10.50.0.15 · 16 vCPU · 28 GB RAM</div>
+          </div>
+        </div>
+        <ul class="vm-svc-list">
+          <li>ComfyUI — Stable Diffusion image generation</li>
+          <li>VT100 / GPU passed through for inference</li>
+        </ul>
+        <div class="pt-tag">🖥 VT100 passthrough</div>
+      </div>
+
+      <!-- Citadel -->
+      <div class="vm-card citadel">
+        <div class="vm-card-header">
+          <span class="vm-card-icon">🏠</span>
+          <div>
+            <div class="vm-card-name">Citadel</div>
+            <div class="vm-card-ip">10.50.0.11 · 4 vCPU · 4 GB RAM</div>
+          </div>
+        </div>
+        <ul class="vm-svc-list">
+          <li>Home Assistant OS — smart home hub</li>
+          <li>Zigbee USB controller for device pairing</li>
+          <li>All automations, scenes, and integrations</li>
+        </ul>
+        <div class="pt-tag">🔌 Zigbee USB controller passthrough</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ 03 DEPLOYMENT GUIDE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Deployment <span>Guide</span></h2>
+    </div>
+
+    <p style="font-size:.9rem; margin-bottom:2rem; opacity:.8;">
+      Five Python generator scripts produce all Docker Compose files, setup scripts, config files,
+      and dashboards. Each script is interactive — run it on your local machine, answer the prompts,
+      then SCP the output folder to the target VM and run <code>setup.sh</code>.
+    </p>
+
+    <!-- Script reference table -->
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Script</th>
+          <th>Target VM</th>
+          <th>Output Folder</th>
+          <th>Generates</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="ref-script">generate_sentinel.py</span></td>
+          <td>Sentinel — 10.50.0.10</td>
+          <td><span class="ref-output">sentinel/</span></td>
+          <td>docker-compose.yml, setup.sh, servers.json, dashboard HTML, nginx.conf, DEPLOY.md</td>
+        </tr>
+        <tr>
+          <td><span class="ref-script">generate_compose.py</span></td>
+          <td>Lexicon — 10.50.0.13</td>
+          <td><span class="ref-output">lexicon-deploy/</span></td>
+          <td>docker-compose.yml, setup.sh, dashboard HTML, DEPLOY.md, eXoDOS Flask app</td>
+        </tr>
+        <tr>
+          <td><span class="ref-script">generate_deepthought.py</span></td>
+          <td>Deepthought — 10.50.0.14</td>
+          <td><span class="ref-output">deepthought/</span></td>
+          <td>docker-compose.yml, setup.sh, DEPLOY.md</td>
+        </tr>
+        <tr>
+          <td><span class="ref-script">generate_echo.py</span></td>
+          <td>Echo — 10.50.0.20</td>
+          <td><span class="ref-output">echo/</span></td>
+          <td>docker-compose.yml, setup.sh, DEPLOY.md</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="step-list">
+
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h3>Prerequisites — all generators</h3>
+          <p>All generators require Python 3.8+. No pip packages needed — they use only the standard library. Run from a machine that can SSH/SCP to each VM on the 10.50.0.x network.</p>
+          <pre><span class="cmd">python3 --version</span>   <span class="comment"># must be 3.8+</span></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h3>Sentinel — Master Dashboard &amp; Network Services</h3>
+          <p>Run the generator, enable Omada and BorgBackup in the menu, add all other VMs in the linked servers screen. The default server list is pre-populated with Lexicon, Deepthought, and Echo.</p>
+          <pre><span class="cmd">python3 generate_sentinel.py</span>
+<span class="comment"># ── Menu choices ──────────────────────────────────────────
+# 1. IP: 10.50.0.10
+# 2. Services: Omada=on
+# 3. Host packages: BorgBackup=on, OpenVPN=on
+# 5. Review/edit linked server list
+# 7. Generate</span>
+
+<span class="comment"># Deploy</span>
+<span class="cmd">scp -r sentinel/ user@10.50.0.10:~/
+ssh user@10.50.0.10 'cd sentinel && sudo bash setup.sh'</span>
+<span class="comment"># REBOOT if prompted, then:</span>
+<span class="cmd">ssh user@10.50.0.10 'sudo cp -r ~/sentinel/dashboard/* /mnt/disk0/sentinel/homepage/'
+ssh user@10.50.0.10 'cd ~/sentinel && docker compose up -d'</span></pre>
+          <div class="callout callout-info">Access the master dashboard at <strong>http://10.50.0.10</strong> — status dots ping each server live.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <h3>Lexicon — Media &amp; Library Services</h3>
+          <p>The most complex generator. Use the multi-instance menus to add named Jellyfin instances. Enable desired singletons (Headway, Nextcloud, Kiwix, etc.). The RAM calculator shown in the summary screen helps you verify the 28 GB allocation is sufficient.</p>
+          <pre><span class="cmd">python3 generate_compose.py</span>
+<span class="comment"># ── Key menu choices ──────────────────────────────────────
+# 1. IP: 10.50.0.13
+# 2. Configure Jellyfin instances (name each one)
+# 3. Toggle singletons — enable Headway (port 8720)
+# 4. Review RAM summary before generating
+# 5. Generate</span>
+
+<span class="cmd">scp -r lexicon-deploy/ user@10.50.0.13:~/
+ssh user@10.50.0.13 'cd lexicon-deploy && sudo bash setup.sh'
+ssh user@10.50.0.13 'cd ~/lexicon-deploy && docker compose up -d'</span></pre>
+          <div class="callout callout-warn">
+            <strong>Headway first-run:</strong> Before starting the headway container, run the one-time data build to download and index your chosen map region. This can take 1–4 hours for a large region and requires ~60 GB of disk space:
+            <br><br>
+            <code>docker run --rm -v /mnt/disk0/lexicon/headway/data:/data headwaymaps/headway build --area north-america</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <h3>Deepthought — Dual P40 LLM Server</h3>
+          <p>Generates Ollama + OpenWebUI with SCHED_SPREAD for dual-GPU layer distribution. KV cache is set to q8_0 by default to halve VRAM cost on long contexts, leaving room for 70B quantised models on the 48 GB combined VRAM.</p>
+          <pre><span class="cmd">python3 generate_deepthought.py</span>
+<span class="comment"># ── Menu choices ──────────────────────────────────────────
+# 1. IP: 10.50.0.14
+# 3. GPU count: 2 (both P40s)
+# 4. Models dir: /mnt/disk0/Deepthought/models
+# 5. KV cache: q8_0, keep_alive: -1
+# 7. Generate</span>
+
+<span class="cmd">scp -r deepthought/ user@10.50.0.14:~/
+ssh user@10.50.0.14 'cd deepthought && sudo bash setup.sh'</span>
+<span class="comment"># REBOOT required after NVIDIA driver DKMS install</span>
+<span class="cmd">ssh user@10.50.0.14 'cd ~/deepthought && docker compose up -d'</span>
+<span class="comment"># Pull a model to test both GPUs are used:</span>
+<span class="cmd">docker exec ollama ollama pull deepseek-r1:70b-distill-q4_K_M
+docker exec ollama nvidia-smi  # both P40s should show VRAM usage</span></pre>
+          <div class="callout callout-info">
+            The setup.sh installs <strong>nvidia-kernel-dkms</strong> (proprietary 550.x) from Debian 13 non-free — not the open-kernel flavor, which doesn't support Pascal. A reboot is required after DKMS builds the kernel module.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-body">
+          <h3>Echo — STT + Small Reasoning Model</h3>
+          <p>Single P40 (24 GB VRAM). faster-whisper large-v3 INT8 takes ~3.1 GB, leaving ~21 GB for Ollama. Qwen3 30B-A3B Q4_K_M at ~17 GB fits comfortably with ~2 GB to spare — the ideal always-on STT + reasoning setup.</p>
+          <pre><span class="cmd">python3 generate_echo.py</span>
+<span class="comment"># ── Menu choices ──────────────────────────────────────────
+# 1. IP: 10.50.0.20
+# 3. GPU: NVIDIA, 1 GPU
+# 4. Ollama: models dir /mnt/disk0/echo/ollama/models
+# 5. Whisper: large-v3, INT8, GPU 0
+# 7. Generate</span>
+
+<span class="cmd">scp -r echo/ user@10.50.0.20:~/
+ssh user@10.50.0.20 'cd echo && sudo bash setup.sh'</span>
+<span class="comment"># REBOOT required after NVIDIA driver DKMS install</span>
+<span class="cmd">ssh user@10.50.0.20 'cd ~/echo && docker compose up -d'
+docker exec ollama ollama pull qwen3:30b-a3b-instruct-q4_K_M</span></pre>
+          <div class="callout callout-green">
+            Same Pascal driver rules as Deepthought: <strong>nvidia-kernel-dkms 550.x</strong> from Debian non-free. R580 is the final NVIDIA driver branch that supports GTX 10xx / Tesla P40 (Pascal). 590+ drops Pascal entirely.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">06</div>
+        <div class="step-body">
+          <h3>Post-deployment — Linking everything together</h3>
+          <p>Once all VMs are running, update Sentinel's server list and verify status dots are green across the board.</p>
+          <pre><span class="comment"># Edit the server list live on Sentinel (no restart needed):</span>
+<span class="cmd">ssh user@10.50.0.10 'nano /mnt/disk0/sentinel/homepage/servers.json'</span>
+
+<span class="comment"># Recommended servers.json entries:</span>
+<span class="str">[
+  {"name": "Jellyfin",       "ip": "10.50.0.13", "port": 8100, "icon": "🎬"},
+  {"name": "Nextcloud",      "ip": "10.50.0.13", "port": 8240, "icon": "☁️"},
+  {"name": "Headway Maps",   "ip": "10.50.0.13", "port": 8720, "icon": "🗺️"},
+  {"name": "OpenWebUI",      "ip": "10.50.0.14", "port": 8080, "icon": "🤖"},
+  {"name": "Echo Ollama",    "ip": "10.50.0.20", "port": 11434,"icon": "🎙️"},
+  {"name": "Home Assistant", "ip": "10.50.0.11", "port": 8123, "icon": "🏠"}
+]</span></pre>
+        </div>
+      </div>
+
+    </div><!-- /step-list -->
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ 04 DRIVER NOTES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">NVIDIA Driver <span>Notes</span></h2>
+    </div>
+
+    <div class="callout callout-warn" style="margin-bottom:1.5rem;">
+      <strong>All three P40s (Deepthought ×2, Echo ×1) are Pascal architecture (sm_61).</strong>
+      NVIDIA confirmed R580 is the final driver branch for Pascal. The 590+ series drops GTX 10xx
+      and Tesla P4x entirely. The setup scripts install the correct 550.x series from Debian 13 non-free.
+    </div>
+
+    <table class="vm-table">
+      <thead>
+        <tr><th>Item</th><th>Correct</th><th>Incorrect / Why it fails</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Driver package</td>
+          <td><code>nvidia-kernel-dkms nvidia-driver</code></td>
+          <td><code>nvidia-open-kernel-dkms</code> — Pascal not supported by open flavor</td>
+        </tr>
+        <tr>
+          <td>Driver series</td>
+          <td>550.x (from Debian 13 non-free)</td>
+          <td>590+ drops Pascal; 470.x is too old for CUDA 12</td>
+        </tr>
+        <tr>
+          <td>CUDA toolkit</td>
+          <td><code>apt install nvidia-cuda-toolkit</code> (Debian native)</td>
+          <td>NVIDIA CUDA repo doesn't support Debian 13/Trixie yet</td>
+        </tr>
+        <tr>
+          <td>Kernel headers</td>
+          <td>Install <code>linux-headers-$(uname -r)</code> FIRST</td>
+          <td>Debian 13 / kernel 6.12 doesn't ship headers by default; DKMS silently fails</td>
+        </tr>
+        <tr>
+          <td>Flash Attention</td>
+          <td>Leave unset — Pascal doesn't support it</td>
+          <td>OLLAMA_FLASH_ATTENTION=1 silently falls back; no gain, possible confusion</td>
+        </tr>
+        <tr>
+          <td>Container Toolkit</td>
+          <td>Official NVIDIA APT repo → <code>nvidia-ctk runtime configure</code></td>
+          <td>Must be installed AFTER Docker CE; must run nvidia-ctk to wire runtime</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+</div><!-- /container -->
+
+<footer>
+  <div class="footer-logo">DataHearth</div>
+  <div>Proxmox · Debian 13 · Docker · 3× Tesla P40 · 6 VMs</div>
+  <div>Generated documentation · Rev 1.0</div>
+</footer>
+
+</body>
+</html>
