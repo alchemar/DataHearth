@@ -14,7 +14,8 @@ A custom-built server designed to replace commonly used internet services with l
 - **Privacy Control** — Keep your data local instead of sending it to external servers
 
 ---
-
+# Current State of Project
+Still setting up the project. Got the core working, but most of the scripts are vibe coded and still need to test. Not Close to Production Ready
 ## 🔧 Hardware
 
 ### Motherboard
@@ -64,6 +65,8 @@ An open-frame build was necessary due to:
 
 Each VM has a **Python helper script** that lets you configure desired services and IP address, then generates a `docker-compose.yml` and installation script.
 
+There is also an extra script in Lexicon that download various media files from free sources. Kiwix Guttenburg. Internet Archive.
+
 ---
 
 ### 🛡️ Sentinel — *The Gatekeeper*
@@ -98,6 +101,8 @@ Each VM has a **Python helper script** that lets you configure desired services 
 | **Headway** | Offline maps | 🔧 Setup pending |
 | **Solr + Grok** | Search functionality | 🔧 Setup pending |
 | **TVHeadEnd** | DVR functionality | 🔧 Setup pending |
+| **romM** | RetroArch Archive | 🔧 Setup pending |
+| **exoDos** | Collection of Dos games | 🔧 Setup pending |
 
 > 💡 **Tip:** Most services support multiple instances, allowing you to separate content into **curated**, **everything**, and **adult-only** servers.
 
